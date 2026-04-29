@@ -11,7 +11,7 @@
  *   /profile delete <name>    - Delete a profile
  */
 
-import { Type } from "@mariozechner/pi-ai";
+import { Type } from "typebox";
 import type { ExtensionAPI, ExtensionContext } from "@mariozechner/pi-coding-agent";
 
 // Profile shape
@@ -87,19 +87,11 @@ export default function profileManagerExtension(pi: ExtensionAPI) {
 
         case "create": {
           if (!name) {
-            return {
-              content: [{ type: "text", text: "Error: profile name is required for 'create'." }],
-              details: { error: "Missing name" },
-              isError: true,
-            };
+            throw new Error("Profile name is required for 'create'.");
           }
           const existing = state.profiles.find((p) => p.name === name);
           if (existing) {
-            return {
-              content: [{ type: "text", text: `Error: profile '${name}' already exists.` }],
-              details: { error: "Duplicate name" },
-              isError: true,
-            };
+            throw new Error(`Profile '${name}' already exists.`);
           }
           // Capture current settings
           const allTools = pi.getAllTools().map((t) => t.name);
@@ -120,19 +112,11 @@ export default function profileManagerExtension(pi: ExtensionAPI) {
 
         case "switch": {
           if (!name) {
-            return {
-              content: [{ type: "text", text: "Error: profile name is required for 'switch'." }],
-              details: { error: "Missing name" },
-              isError: true,
-            };
+            throw new Error("Profile name is required for 'switch'.");
           }
           const profile = state.profiles.find((p) => p.name === name);
           if (!profile) {
-            return {
-              content: [{ type: "text", text: `Error: profile '${name}' not found.` }],
-              details: { error: "Profile not found" },
-              isError: true,
-            };
+            throw new Error(`Profile '${name}' not found.`);
           }
           // Activate tools from profile
           if (profile.tools && profile.tools.length > 0) {
@@ -148,19 +132,11 @@ export default function profileManagerExtension(pi: ExtensionAPI) {
 
         case "delete": {
           if (!name) {
-            return {
-              content: [{ type: "text", text: "Error: profile name is required for 'delete'." }],
-              details: { error: "Missing name" },
-              isError: true,
-            };
+            throw new Error("Profile name is required for 'delete'.");
           }
           const idx = state.profiles.findIndex((p) => p.name === name);
           if (idx === -1) {
-            return {
-              content: [{ type: "text", text: `Error: profile '${name}' not found.` }],
-              details: { error: "Profile not found" },
-              isError: true,
-            };
+            throw new Error(`Profile '${name}' not found.`);
           }
           state.profiles.splice(idx, 1);
           if (state.activeProfile === name) {
@@ -174,11 +150,7 @@ export default function profileManagerExtension(pi: ExtensionAPI) {
         }
 
         default: {
-          return {
-            content: [{ type: "text", text: `Error: unknown action '${action}'. Use list, create, switch, or delete.` }],
-            details: { error: "Unknown action" },
-            isError: true,
-          };
+          throw new Error(`Unknown action '${action}'. Use list, create, switch, or delete.`);
         }
       }
     },
@@ -216,9 +188,22 @@ export default function profileManagerExtension(pi: ExtensionAPI) {
             ctx.ui.notify("Usage: /profile create <name>", "error");
             return;
           }
-          // Execute via tool for consistency
-          const result = await pi.exec("pi", ["-p", "call profile_manager tool with action=create"], { timeout: 10000 });
-          ctx.ui.notify(`Profile '${name}' created.`, "success");
+          const existing = state.profiles.find((p) => p.name === name);
+          if (existing) {
+            ctx.ui.notify(`Profile '${name}' already exists.`, "error");
+            return;
+          }
+          const allTools = pi.getAllTools().map((t) => t.name);
+          const activeTools = pi.getActiveTools();
+          const profile: Profile = {
+            name,
+            tools: activeTools.length > 0 ? activeTools : allTools,
+            createdAt: Date.now(),
+          };
+          state.profiles.push(profile);
+          state.activeProfile = name;
+          persistState();
+          ctx.ui.notify(`Profile '${name}' created and activated.`, "info");
           break;
         }
 
@@ -237,7 +222,7 @@ export default function profileManagerExtension(pi: ExtensionAPI) {
           }
           state.activeProfile = name;
           persistState();
-          ctx.ui.notify(`Switched to profile '${name}'.`, "success");
+          ctx.ui.notify(`Switched to profile '${name}'.`, "info");
           break;
         }
 
@@ -261,7 +246,7 @@ export default function profileManagerExtension(pi: ExtensionAPI) {
             state.activeProfile = undefined;
           }
           persistState();
-          ctx.ui.notify(`Profile '${name}' deleted.`, "success");
+          ctx.ui.notify(`Profile '${name}' deleted.`, "info");
           break;
         }
 
