@@ -1,0 +1,18 @@
+{
+  "name": "pi-profile-manager",
+  "version": "0.1.0",
+  "description": "A pi-coding-agent extension for managing configuration profiles",
+  "type": "module",
+  "keywords": ["pi-package"],
+  "author": "",
+  "license": "MIT",
+  "pi": {
+    "extensions": ["./src/index.ts"]
+  },
+  "peerDependencies": {
+    "@mariozechner/pi-coding-agent": "*",
+    "@mariozechner/pi-ai": "*",
+    "@mariozechner/pi-tui": "*",
+    "typebox": "*"
+  }
+}
