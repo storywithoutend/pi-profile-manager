@@ -30,10 +30,10 @@ pi install git:github.com/storywithoutend/pi-profile-manager
 
 | Command | Description |
 |---------|-------------|
-| `/profile list` | List all saved profiles |
-| `/profile create <name>` | Save current settings as a profile |
-| `/profile switch <name>` | Activate a profile |
-| `/profile delete <name>` | Delete a profile |
+| `/profiles` | List all saved profiles |
+| `/profiles create <name>` | Save current settings as a profile |
+| `/profiles switch <name>` | Activate a profile |
+| `/profiles delete <name>` | Delete a profile |
 
 ### Via Tool
 

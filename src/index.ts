@@ -5,10 +5,10 @@
  * Profiles can store model preferences, thinking levels, and active tools.
  *
  * Usage:
- *   /profile create <name>    - Save current settings as a profile
- *   /profile list             - List all saved profiles
- *   /profile switch <name>    - Switch to a profile
- *   /profile delete <name>    - Delete a profile
+ *   /profiles create <name>   - Save current settings as a profile
+ *   /profiles                 - List all saved profiles
+ *   /profiles switch <name>   - Switch to a profile
+ *   /profiles delete <name>   - Delete a profile
  */
 
 import { Type } from "@mariozechner/pi-ai";
@@ -185,7 +185,7 @@ export default function profileManagerExtension(pi: ExtensionAPI) {
   });
 
   // ── Commands ──
-  pi.registerCommand("profile", {
+  pi.registerCommand("profiles", {
     description: "Manage pi configuration profiles (list, create, switch, delete)",
     handler: async (args, ctx) => {
       const [subcmd, name] = args.trim().split(/\s+/);
@@ -209,7 +209,7 @@ export default function profileManagerExtension(pi: ExtensionAPI) {
 
         case "create": {
           if (!name) {
-            ctx.ui.notify("Usage: /profile create <name>", "error");
+            ctx.ui.notify("Usage: /profiles create <name>", "error");
             return;
           }
           // Execute via tool for consistency
@@ -220,7 +220,7 @@ export default function profileManagerExtension(pi: ExtensionAPI) {
 
         case "switch": {
           if (!name) {
-            ctx.ui.notify("Usage: /profile switch <name>", "error");
+            ctx.ui.notify("Usage: /profiles switch <name>", "error");
             return;
           }
           const profile = state.profiles.find((p) => p.name === name);
@@ -239,7 +239,7 @@ export default function profileManagerExtension(pi: ExtensionAPI) {
 
         case "delete": {
           if (!name) {
-            ctx.ui.notify("Usage: /profile delete <name>", "error");
+            ctx.ui.notify("Usage: /profiles delete <name>", "error");
             return;
           }
           const idx = state.profiles.findIndex((p) => p.name === name);
