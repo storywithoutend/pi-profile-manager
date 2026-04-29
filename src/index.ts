@@ -5,10 +5,10 @@
  * Profiles can store model preferences, thinking levels, and active tools.
  *
  * Usage:
- *   /profiles create <name>   - Save current settings as a profile
+ *   /profile create <name>    - Save current settings as a profile
  *   /profiles                 - List all saved profiles
- *   /profiles switch <name>   - Switch to a profile
- *   /profiles delete <name>   - Delete a profile
+ *   /profile switch <name>    - Switch to a profile
+ *   /profile delete <name>    - Delete a profile
  */
 
 import { Type } from "@mariozechner/pi-ai";
@@ -185,31 +185,35 @@ export default function profileManagerExtension(pi: ExtensionAPI) {
   });
 
   // ── Commands ──
+
+  // /profiles — list all profiles (plural = multiple objects)
   pi.registerCommand("profiles", {
-    description: "Manage pi configuration profiles (list, create, switch, delete)",
+    description: "List all saved configuration profiles",
+    handler: async (_args, ctx) => {
+      restoreState(ctx);
+      if (state.profiles.length === 0) {
+        ctx.ui.notify("No profiles saved yet.", "info");
+        return;
+      }
+      const lines = state.profiles.map((p) => {
+        const marker = p.name === state.activeProfile ? " (active)" : "";
+        return `${p.name}${marker}`;
+      });
+      ctx.ui.notify(`Profiles: ${lines.join(", ")}`, "info");
+    },
+  });
+
+  // /profile — actions on a single profile object (singular)
+  pi.registerCommand("profile", {
+    description: "Create, switch, or delete a configuration profile",
     handler: async (args, ctx) => {
       const [subcmd, name] = args.trim().split(/\s+/);
       restoreState(ctx);
 
       switch (subcmd) {
-        case "list":
-        case "":
-        case undefined: {
-          if (state.profiles.length === 0) {
-            ctx.ui.notify("No profiles saved yet.", "info");
-            return;
-          }
-          const lines = state.profiles.map((p) => {
-            const marker = p.name === state.activeProfile ? " (active)" : "";
-            return `${p.name}${marker}`;
-          });
-          ctx.ui.notify(`Profiles: ${lines.join(", ")}`, "info");
-          break;
-        }
-
         case "create": {
           if (!name) {
-            ctx.ui.notify("Usage: /profiles create <name>", "error");
+            ctx.ui.notify("Usage: /profile create <name>", "error");
             return;
           }
           // Execute via tool for consistency
@@ -220,7 +224,7 @@ export default function profileManagerExtension(pi: ExtensionAPI) {
 
         case "switch": {
           if (!name) {
-            ctx.ui.notify("Usage: /profiles switch <name>", "error");
+            ctx.ui.notify("Usage: /profile switch <name>", "error");
             return;
           }
           const profile = state.profiles.find((p) => p.name === name);
@@ -239,7 +243,7 @@ export default function profileManagerExtension(pi: ExtensionAPI) {
 
         case "delete": {
           if (!name) {
-            ctx.ui.notify("Usage: /profiles delete <name>", "error");
+            ctx.ui.notify("Usage: /profile delete <name>", "error");
             return;
           }
           const idx = state.profiles.findIndex((p) => p.name === name);
@@ -262,7 +266,7 @@ export default function profileManagerExtension(pi: ExtensionAPI) {
         }
 
         default: {
-          ctx.ui.notify(`Unknown subcommand: ${subcmd}. Use list, create, switch, or delete.`, "error");
+          ctx.ui.notify(`Unknown subcommand: ${subcmd}. Use create, switch, or delete.`, "error");
         }
       }
     },
